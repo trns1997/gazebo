@@ -50,6 +50,7 @@ namespace gazebo
       /// \internal
       /// \brief Pointer to private data
       private: DARTBoxShapePrivate *dataPtr;
+      private: bool isSoftBody_;
     };
     /// \}
   }

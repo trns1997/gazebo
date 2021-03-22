@@ -144,10 +144,9 @@ void DARTLink::Load(sdf::ElementPtr _sdf)
     if (softGeomElem->HasElement("box"))
     {
       sdf::ElementPtr boxEle = softGeomElem->GetElement("box");
-      Eigen::Vector3d size =
-          DARTTypes::ConvVec3(boxEle->Get<ignition::math::Vector3d>("size"));
+      Eigen::Vector3d boxSize = DARTTypes::ConvVec3(boxEle->Get<ignition::math::Vector3d>("size"));
       softProperties = dart::dynamics::SoftBodyNodeHelper::makeBoxProperties(
-            size, T, fleshMassFraction, boneAttachment, stiffness, damping);
+            boxSize, T, Eigen::Vector3i(4, 4, 4), fleshMassFraction, boneAttachment, stiffness, damping);
     }
 //    else if (geomElem->HasElement("ellipsoid"))
 //    {
@@ -167,13 +166,18 @@ void DARTLink::Load(sdf::ElementPtr _sdf)
       gzerr << "Unknown soft shape" << std::endl;
     }
 
+    softProperties.mKv = boneAttachment;
+    softProperties.mKe = stiffness;
+    softProperties.mDampCoeff = damping;
+
     // Create DART SoftBodyNode properties
     dart::dynamics::BodyNode::AspectProperties properties(bodyName);
     this->dataPtr->dtProperties.reset(
           new dart::dynamics::SoftBodyNode::Properties(
             properties, softProperties));
 
-    this->dataPtr->isSoftBody;
+    this->dataPtr->isSoftBody = true;
+    this->dataPtr->fleshMass = fleshMassFraction;
   }
   else
   {
@@ -268,8 +272,13 @@ void DARTLink::UpdateMass()
   {
     double nFragments = 1.0 + this->dataPtr->dtSlaveNodes.size();
     double mass = this->inertial->Mass()/nFragments;
-    this->dataPtr->dtBodyNode->setMass(mass);
 
+    if(this->dataPtr->isSoftBody)
+    {
+      mass -= this->dataPtr->fleshMass;
+    }
+
+    this->dataPtr->dtBodyNode->setMass(mass);
     const ignition::math::Quaterniond R_inertial = this->inertial->Pose().Rot();
 
     const ignition::math::Matrix3d I_link =
