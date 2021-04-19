@@ -148,19 +148,21 @@ void DARTLink::Load(sdf::ElementPtr _sdf)
       softProperties = dart::dynamics::SoftBodyNodeHelper::makeBoxProperties(
             boxSize, T, Eigen::Vector3i(4, 4, 4), fleshMassFraction, boneAttachment, stiffness, damping);
     }
-//    else if (geomElem->HasElement("ellipsoid"))
-//    {
-//      sdf::ElementPtr ellipsoidEle = geomElem->GetElement("ellipsoid");
-//      Eigen::Vector3d size
-//          = DARTTypes::ConvVec3(ellipsoidEle->Get<
-//          ignition::math::Vector3d>("size"));
-//      double nSlices = ellipsoidEle->Get<double>("num_slices");
-//      double nStacks = ellipsoidEle->Get<double>("num_stacks");
-//      dart::dynamics::SoftBodyNodeHelper::setEllipsoid(
-//            dtSoftBodyNode, size, nSlices, nStacks, fleshMassFraction);
-//      dtSoftBodyNode->addCollisionShape(
-//            new dart::dynamics::SoftMeshShape(dtSoftBodyNode));
-//    }
+    else if (softGeomElem->HasElement("sphere"))
+    {
+      sdf::ElementPtr sphereEle = softGeomElem->GetElement("sphere");
+      double radius = sphereEle->Get<double>("radius");
+      softProperties = dart::dynamics::SoftBodyNodeHelper::makeSphereProperties(
+            radius, 6, 6, fleshMassFraction, boneAttachment, stiffness, damping);
+    }
+    else if (softGeomElem->HasElement("cylinder"))
+    {
+      sdf::ElementPtr cylinderEle = softGeomElem->GetElement("cylinder");
+      double radius = cylinderEle->Get<double>("radius");
+      double length = cylinderEle->Get<double>("length");
+      softProperties = dart::dynamics::SoftBodyNodeHelper::makeCylinderProperties(
+            radius, length, 8, 3, 2, fleshMassFraction, boneAttachment, stiffness, damping);
+    }
     else
     {
       gzerr << "Unknown soft shape" << std::endl;

@@ -57,6 +57,8 @@ void DARTCylinderShape::Init()
   this->dataPtr->CreateShape(bodyNode);
   _collisionParent->SetDARTCollisionShapeNode(this->dataPtr->ShapeNode());
 
+  this->isSoftBody = _collisionParent->IsSoftBody();
+
   CylinderShape::Init();
 }
 
@@ -93,6 +95,13 @@ void DARTCylinderShape::SetSize(double _radius, double _length)
   }
 
   CylinderShape::SetSize(_radius, _length);
+
+  // Rigid Bone at the core of the soft body which is 0.6 times smaller
+  if(this->isSoftBody)
+  {
+    _radius *= 0.6;
+    _length *= 0.6;
+  }
 
   this->dataPtr->Shape()->setRadius(_radius);
   this->dataPtr->Shape()->setHeight(_length);

@@ -59,6 +59,8 @@ void DARTSphereShape::Init()
   _collisionParent->SetDARTCollisionShapeNode(
                        this->dataPtr->ShapeNode(), false);
 
+  this->isSoftBody = _collisionParent->IsSoftBody();
+
   SphereShape::Init();
 }
 
@@ -82,6 +84,12 @@ void DARTSphereShape::SetRadius(double _radius)
   }
 
   SphereShape::SetRadius(_radius);
+
+  // Rigid Bone at the core of the soft body which is 0.6 times smaller
+  if(this->isSoftBody)
+  {
+    _radius *= 0.6;
+  }
 
   this->dataPtr->Shape()->setRadius(_radius);
 }
